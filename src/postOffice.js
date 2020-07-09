@@ -6,10 +6,11 @@ import MinimalBCHWallet from 'minimal-slp-wallet';
 import BCHJS from '@chris.troutner/bch-js';
 import { Content, Row, Col, Box, Inputs, Button } from "adminlte-2-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import PaymentProtocol from 'bitcore-payment-protocol'
 const { Text, Select } = Inputs
 
 const slpjs = require('slpjs');
-const PaymentProtocol = require('bitcore-payment-protocol')
+
 
 const handlePostageRateSubmit = async (postOfficeUrl, setPostageRate) => {
     try {
@@ -30,7 +31,7 @@ const setTokenListFromWallet = async (walletInfo, setTokenList) => {
 }
 
 
-const sendTransaction = async (postOfficeUrl, postageData, walletInfo, tokenId, amount, outputAddress) => {
+const sendTransaction = async (postOfficeUrl, postageData, walletInfo, tokenId, amount, outputAddress, setTransactionUrl) => {
     try {
         //const minimalBCHWallet = await new MinimalBCHWallet(walletInfo.mnemonic);
         console.log(`Creating custom transaction for Post Office...`);
@@ -102,7 +103,7 @@ const sendTransaction = async (postOfficeUrl, postageData, walletInfo, tokenId, 
       const rawbody = payment.serialize()
       const headers = {
         Accept:
-          'application/simpleledger-paymentrequest, application/simpleledger-paymentack',
+          'application/simpleledger-paymentrequest, application/simpleledger-paymentack, application/json',
         'Content-Type': 'application/simpleledger-payment',
         'Content-Transfer-Encoding': 'binary',
       }
@@ -111,12 +112,14 @@ const sendTransaction = async (postOfficeUrl, postageData, walletInfo, tokenId, 
         rawbody,
         {
           headers,
-          responseType: 'blob',
         }
       )
 
-     // const responseTxHex = await PaymentProtocol.decodePaymentResponse(response.data)
-    // const resultTransaction = bchjs.TransactionBuilder.transaction.fromHex(responseTxHex.hex);
+     console.log(`Response Data: `, response.data);
+     setTransactionUrl(response.data.url);
+    //  const paymentProtocol = new PaymentProtocol('BCH')
+    //  const responseTxHex = await paymentProtocol.deserialize(response.data, 'PaymentACK');
+    //  const resultTransaction = PaymentProtocol.Payment.decode(response.data.raw);
     //  console.log(resultTransaction);
     } catch (e) {
         console.error(`Error from FullStack.cash api`, e);
@@ -130,7 +133,7 @@ const PostOffice = () => {
     const [selectedTokenId, setSelectedTokenId] = useState("9fc89d6b7d5be2eac0b3787c5b8236bca5de641b5bafafc8f450727b63615c11");
     const [amount, setAmount] = useState(0);
     const [slpDestinationAddress, setSlpDestinationAddress] = useState(null);
-    const [transactionId, setTransactionId] = useState(null)
+    const [transactionUrl, setTransactionUrl] = useState(null)
 
     
     useEffect(() => {
@@ -209,12 +212,12 @@ const PostOffice = () => {
                       type="primary"
                       className="btn-lg"
                       style={{ marginTop: "15px"}}
-                      onClick={() => sendTransaction(postOfficeUrl, postageData, getWalletInfo(), selectedTokenId, amount, slpDestinationAddress, setTransactionId)}
+                      onClick={() => sendTransaction(postOfficeUrl, postageData, getWalletInfo(), selectedTokenId, amount, slpDestinationAddress, setTransactionUrl)}
                     />
                   </Box>
                 </Col>
                 <Col sm={12} className="text-center">
-                    {transactionId && (<a href={`https://explorer.bitcoin.com/bch/tx/${transactionId}`}>Transaction successful! Click here to go to the explorer.</a>)}
+                    {transactionUrl && (<a href={`${transactionUrl}`}>Transaction successful! Click here to go to the explorer.</a>)}
                 </Col>
               </Row>
             </Box>
