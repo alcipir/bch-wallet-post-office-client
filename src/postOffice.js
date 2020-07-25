@@ -36,7 +36,7 @@ const sendTransaction = async (postOfficeUrl, postageData, walletInfo, tokenId, 
         //const minimalBCHWallet = await new MinimalBCHWallet(walletInfo.mnemonic);
         console.log(`Creating custom transaction for Post Office...`);
         const bchjs = await new BCHJS({
-            restURL: 'https://api.fullstack.cash/v3/',
+            restURL: 'https://free-main.fullstack.cash/v3/',
             apiToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVmMDRmNDQ3ZjZkMmNkMDAxMjZiNzUyOSIsImVtYWlsIjoiYW5kcmVjYWJyZXJhQHByb3Rvbm1haWwuY2giLCJhcGlMZXZlbCI6MCwicmF0ZUxpbWl0IjozLCJpYXQiOjE1OTQxNjAyMjEsImV4cCI6MTU5Njc1MjIyMX0.L-h_hdVMjMafSaVHsXLeoyISLvwezZXji04G9KRvKD0' // Your JWT token here.
           })
         const utxoResponse = await bchjs.Electrumx.utxo(walletInfo.cashAddress);
@@ -49,7 +49,8 @@ const sendTransaction = async (postOfficeUrl, postageData, walletInfo, tokenId, 
         const slpInputUtxo = slpUtxosFromTokenId.filter(slpUtxo => slpUtxo.tokenQty > amount).pop();
     
         console.log(`Add SLP outputs`);
-        const postageRate = new BigNumber(postageData.stamps[0].rate / (10 ** postageData.stamps[0].decimals)).times(10 ** (slpUtxosFromTokenId[0].decimals));
+        const postageRate = new BigNumber(postageData.stamps[0].rate / (10 ** postageData.stamps[0].decimals)).times(10 ** (slpUtxosFromTokenId[0].decimals)).times(4);
+        console.log('postage rate', postageRate);
         const tokenQty = new BigNumber(slpInputUtxo.tokenQty).times(10 ** slpUtxosFromTokenId[0].decimals);
         const amountToSend = new BigNumber(amount).times(10 ** slpUtxosFromTokenId[0].decimals);
         const change = tokenQty.minus(amountToSend).minus(postageRate);
@@ -130,7 +131,7 @@ const PostOffice = () => {
     const [postageData, setPostageData] = useState(null);
     const [postOfficeUrl, setPostOfficeUrl] = useState("http://localhost:3000/postage");
     const [tokenList, setTokenList] = useState([]);
-    const [selectedTokenId, setSelectedTokenId] = useState("9fc89d6b7d5be2eac0b3787c5b8236bca5de641b5bafafc8f450727b63615c11");
+    const [selectedTokenId, setSelectedTokenId] = useState("716daf7baf2f1c517e52a3f6ffd6f734d45eab20e87dc1c79108c5f0f6804888");
     const [amount, setAmount] = useState(0);
     const [slpDestinationAddress, setSlpDestinationAddress] = useState(null);
     const [transactionUrl, setTransactionUrl] = useState(null)
@@ -175,7 +176,7 @@ const PostOffice = () => {
                   </Box>
                 </Col>
                 <Col sm={12} className="text-center">
-                {postageData && <p>Rate: {(new BigNumber(postageData.stamps[0].rate, 16) / Math.pow(10, postageData.stamps[0].decimals)).toFixed(postageData.stamps[0].decimals)} {postageData.stamps[0].symbol}</p>}
+                {postageData && <p>Rate: {(new BigNumber(postageData.stamps[0].rate) / Math.pow(10, postageData.stamps[0].decimals)).toFixed(postageData.stamps[0].decimals)} {postageData.stamps[0].symbol}</p>}
                 </Col>
               </Row>
             </Box>
@@ -197,7 +198,9 @@ const PostOffice = () => {
                     />
                     <Select name="tokenid" onChange={(e) => { console.log(e); setSelectedTokenId(e.target.value) }}
                             value={selectedTokenId}
-                            options={tokenList.filter(token => postageData.stamps.map(stamp => stamp.tokenId).includes(token.tokenId)).map(token => ({ value: token.tokenId, text: token.ticker }))}
+                            options={[{value: '716daf7baf2f1c517e52a3f6ffd6f734d45eab20e87dc1c79108c5f0f6804888', text: 'alcipir'}]}
+                            
+                            
                      />
                     <Text
                       id="amount"
