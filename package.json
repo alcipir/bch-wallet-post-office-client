@@ -40,7 +40,7 @@
     "react-qr-reader": "^2.2.1",
     "react-redux": "^7.2.0",
     "redux": "^4.0.5",
-    "slpjs": "0.22.5"
+    "slpjs": "0.27.4"
   },
   "devDependencies": {
     "prettier": "2.0.5"
